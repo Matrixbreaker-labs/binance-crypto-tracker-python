@@ -1,46 +1,45 @@
-# Binance Live Crypto Tracker (Futures Pipeline)
+# Binance Crypto Futures Data Pipeline
 
-বিনান্স পাবলিক ফিউচার্স এপিআই (Binance Public Futures API) থেকে লাইভ ক্রিপ্টোকারেন্সি ডেটা ট্র্যাক করার জন্য এটি একটি প্রফেশনাল এবং প্রোডাকশন-গ্রেড পাইথন স্ক্রিপ্ট। দূরবর্তী সার্ভারের অতিরিক্ত চাপ বা নেটওয়ার্ক জ্যামের মধ্যেও কোডটি যেন ক্র্যাশ না করে, সেজন্য এতে অটোমেটিক রিট্রাই (Retry) এবং লোকাল এক্সেল ফাইলে ডেটা সেভ করার ব্যবস্থা রাখা হয়েছে।
+An automated Python script designed to stream live cryptocurrency futures data from the Binance API, manage network congestion using dynamic retry protocols, and structure the data into local Excel documents.
 
----
+## Key Features
 
-## 🛠️ স্ক্রিপ্টের মূল বৈশিষ্ট্যসমূহ (Key Features)
+*   **Dynamic Retry Architecture:** Handles HTTP `202 Accepted` status codes automatically by reading the server's `Retry-After` header.
+*   **Failover Endpoint Switching:** Rotates through backup network paths if the primary API cluster faces latency or downtime.
+*   **Safe Connection Handling:** Implements precise timeouts to prevent hanging processes during high market volatility.
+*   **Automated Desktop Export:** Parses the raw network payload via Pandas and locks the compiled dataset directly onto the user's local Desktop.
 
-* **বিকল্প এন্ডপয়েন্ট সাপোর্ট (Endpoint Redundancy):** মূল সার্ভার ডাউন বা ব্যস্ত থাকলে কোডটি স্বয়ংক্রিয়ভাবে ব্যাকআপ সার্ভারগুলোতে (`fapi`, `fapi1`, `fapi2`) সুইচ করে।
-* **সার্ভার জ্যাম প্রতিরোধ (`202 Accepted` Handling):** বিনান্স সার্ভার অতিরিক্ত ব্যস্ততার কারণে ডেটা দিতে দেরি করলে (স্ট্যাটাস কোড ২০২) স্ক্রিপ্টটি বন্ধ না হয়ে, নির্দিষ্ট সময় অপেক্ষা করে আবার চেষ্টা করে।
-* **অটোমেটিক এক্সেল এক্সপোর্ট:** লাইভ ডেটা সফলভাবে রিসিভ করার পর এটি স্বয়ংক্রিয়ভাবে প্রসেস করে আপনার ডেস্কটপে একটি মাইক্রোসফট এক্সেল (`.xlsx`) ফাইল জেনারেট করে।
+## System Dependencies
 
----
-
-## 🚀 সেটআপ এবং রান করার নিয়ম (Setup & Deployment)
-
-### ১. প্রয়োজনীয় লাইব্রেরি ইনস্টল করুন
-আপনার উইন্ডোজের কমান্ড প্রম্পট (CMD) বা পাওয়ারশেল ওপেন করে নিচের কমান্ডটি রান করুন:
+Ensure you have Python 3.8+ installed along with the required libraries. Install them by running:
 
 ```bash
 pip install requests pandas openpyxl
 ```
 
-### ২. স্ক্রিপ্টটি রান করার নিয়ম
-আপনার ডেস্কটপ ডিরেক্টরিতে গিয়ে পাইথন ফাইলটি এক্সিকিউট করুন:
+## How It Works
 
-```cmd
-cd C:\Users\MTBD\Desktop
+1.  **Extraction Node:** The pipeline attempts a connection to the public endpoints for the designated ticker symbol (Defaults to `BTCUSDT`).
+2.  **Silicon Logic Loop:** If the server is busy, the script pauses execution for the exact duration requested by the server before resubmitting the request.
+3.  **Compilation Node:** Once a payload is safely fetched, it is timestamped, converted into a DataFrame object, and exported as an `.xlsx` file.
+
+## Execution
+
+Simply execute the core file through your terminal or command prompt:
+
+```bash
 python main.py
 ```
 
----
+### Script Execution Log Output Example:
+```text
+[*] Connecting to Binance Public Futures Endpoint...
+[+] Live Stream Success! Pair: BTCUSDT | Price: 94250.00
+[+] Market data successfully saved to: C:\Users\MatrixBreaker\Desktop\crypto_market_data.xlsx
+```
 
-## 📊 টার্মিনাল লগ ও ত্রুটি সমাধান নির্দেশিকা (Troubleshooting Guide)
+## Error Handling Parameters
 
-| টার্মিনাল মেসেজ | স্টেটাস ধরণ | সিস্টেমের পরবর্তী পদক্ষেপ |
-| :--- | :--- | :--- |
-| `[*] Connecting to Binance...` | **Info** | বিনান্স সার্ভারের সাথে কানেকশন তৈরি করার চেষ্টা চলছে। |
-| `[*] Binance busy (202 Accepted)...` | **Warning** | বিনান্স সার্ভার ব্যস্ত। কোডটি বন্ধ না হয়ে স্বয়ংক্রিয়ভাবে কিছুক্ষণ পর আবার চেষ্টা করবে। |
-| `[-] Switching to backup endpoint...` | **Alert** | মূল সার্ভারে সমস্যা। সিস্টেম অটোমেটিক ব্যাকআপ সার্ভারে চলে যাচ্ছে। |
-| `[+] Market data successfully saved...` | **Success** | ডেটা সফলভাবে ডেস্কটপে এক্সেল ফাইল হিসেবে সেভ হয়েছে। |
-
----
-
-## 📄 লাইসেন্স এবং ডেলিভারি প্রোটোকল (License & Freelancing Use)
-এই প্রজেক্টটি ওপেন-সোর্স এবং আপওয়ার্ক (Upwork) ফ্রিল্যান্সিং প্রজেক্টে ক্লায়েন্টের কাছে পোর্টফোলিও হিসেবে প্রদর্শন করার জন্য সম্পূর্ণ প্রস্তুত। এটি আপনার কাজের পেশাদারিত্ব ফুটিয়ে তুলবে। 
+*   **HTTP 202 Handling:** Automatically reads `Retry-After` or defaults to a 3-second system cooldown.
+*   **Network Failure Loop:** Retries up to 5 times per endpoint before initiating path rotation.
+*   **Halt Protocol:** Shuts down execution cleanly using `sys.exit` if all endpoints are completely unreachable to prevent infinite looping.
